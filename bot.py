@@ -209,7 +209,7 @@ class MyBot(ActivityHandler):
                 index = message.find("\n")
                 await turn_context.send_activity(MessageFactory.attachment(await messages.function_BUILD_QUESTION(message[0:index],message[index+1:],userProfile.language,userProfile.email)))
 
-            await turn_context.send_activity(MessageFactory.text("Ticket was created"))
+            await turn_context.send_activity(MessageFactory.text("Ticket was created. Please wait an answer on your innopolis mail"))
             await turn_context.send_activity(MessageFactory.attachment(await messages.function_ASK_QUESTION(userProfile.language)))
             return
 
