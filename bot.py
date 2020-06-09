@@ -116,15 +116,15 @@ class MyBot(ActivityHandler):
         else:
             if userProfile.language == "English":
                 await turn_context.send_activity("Please write innopolis email")
-                await turn_context.send_activity("Example: n.sername@innopolis.ru")
+                await turn_context.send_activity("Example: n.surname@innopolis.ru")
             if userProfile.language == "Русский":
                 await turn_context.send_activity("Пожалуйста напишите адрес иннополисовской эл. почты")
-                await turn_context.send_activity("Пример: n.sername@innopolis.ru")
+                await turn_context.send_activity("Пример: n.surname@innopolis.ru")
             if userProfile.language == "b":
                 await turn_context.send_activity("Please write innoplis email")
-                await turn_context.send_activity("Example: n.sername@innopolis.ru")
+                await turn_context.send_activity("Example: n.surname@innopolis.ru")
                 await turn_context.send_activity("Пожалуйста напишите адрес иннополисовксой эл. почты")
-                await turn_context.send_activity("Пример: n.sername@innopolis.ru")
+                await turn_context.send_activity("Пример: n.surname@innopolis.ru")
             return False
 
     async def new_user(self,turn_context,language):
@@ -136,11 +136,11 @@ class MyBot(ActivityHandler):
         if language=="Русский":
             MessageFactory.text("Продолжим на русском")
             await turn_context.send_activity(MessageFactory.text("Чтобы начать диалог вым нужно представиться."
-                                                       " Пожалйста напишите ваш адрес электронной почты в следующем сообщении"))
+                                                       " Пожалуйста напишите ваш адрес электронной почты в следующем сообщении"))
         if language!="Русский" and language!="English":
             await turn_context.send_activity(MessageFactory.text("It seems, I haven’t met before. Send me your e-mail address please."))
             await turn_context.send_activity(MessageFactory.text("Чтобы начать диалог вым нужно представиться."
-                                                                 " Пожалйста напишите ваш адрес электронной почты в следующем сообщении"))
+                                                                 " Пожалуйста напишите ваш адрес электронной почты в следующем сообщении"))
 
     async def solve_question(self,conversation_data,turn_context,userProfile):
         message = turn_context.activity.text
