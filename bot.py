@@ -42,6 +42,8 @@ class MyBot(ActivityHandler):
             await self.language_setting(turn_context)
             conversation_data.state="start"
             return
+        if message=="/help":
+            await turn_context.send_activity(MessageFactory.attachment(await messages.function_HELP(userProfile.language)))
 #language setting stage
         #if user have wrote start, then bot reply
         if conversation_data.state!=None:
@@ -68,7 +70,7 @@ class MyBot(ActivityHandler):
             if conversation_data.state=="setting":
                 userProfile.language = message
                 await turn_context.send_activity(MessageFactory.attachment(
-                    await messages.function_ASK_QUESTION(userProfile.language)))
+                    await messages.function_ASK_NEW_QUESTION(userProfile.language)))
                 conversation_data.state="question"
                 return
 #question stage
@@ -76,10 +78,9 @@ class MyBot(ActivityHandler):
             if conversation_data.state.rfind("question")==0:
                 await self.solve_question(conversation_data,turn_context,userProfile)
 #feedback state
-            if conversation_data.state=="feedback":
-                await turn_context.send_activity(MessageFactory.text("I will add it"))
-                await turn_context.send_activity(MessageFactory.attachment(await messages.function_ASK_QUESTION(userProfile.language)))
-                conversation_data.state = "question"
+            if conversation_data.state.rfind("feedback")==0:
+                await self.get_feedback(userProfile.language,turn_context,conversation_data,userProfile)
+
 
 
     async def on_members_added_activity(
@@ -94,9 +95,6 @@ class MyBot(ActivityHandler):
                     #Dialog start, when user write "/start"
                     await self.language_setting(turn_context)
                     conversation_data.state="start"
-
-
-
 
 
 
@@ -153,7 +151,7 @@ class MyBot(ActivityHandler):
                 conversation_data.state = "setting"
                 return
             # search result in database, first attempt
-            conversation_data.state = "question1"
+            conversation_data.state = "question2"
             await turn_context.send_activity(
                 MessageFactory.text(await self.get_answer_from_knowledge_base(message)))
             userProfile.question = message
@@ -175,7 +173,11 @@ class MyBot(ActivityHandler):
             await turn_context.send_activity(
                 MessageFactory.text("Feedback:"))
             return
-
+        if message == "/cancel":
+            conversation_data.state = "question"
+            await turn_context.send_activity(
+                MessageFactory.attachment(await messages.function_ASK_NEW_QUESTION(userProfile.language)))
+            return
         # search result in database, second attempt
         if conversation_data.state == "question1" and message == "No":
             await turn_context.send_activity(
@@ -195,7 +197,7 @@ class MyBot(ActivityHandler):
         # ask user create ticket
         if conversation_data.state == "question2" and message == "No":
             conversation_data.state = "question3"
-            await turn_context.send_activity(MessageFactory.text("Please write your question in first line and then add detales, or write/skip"))
+            await turn_context.send_activity(MessageFactory.attachment(await messages.function_TYPE_QUESTION(userProfile.language)))
             return
 
         # create ticket
@@ -210,9 +212,36 @@ class MyBot(ActivityHandler):
                 await turn_context.send_activity(MessageFactory.attachment(await messages.function_BUILD_QUESTION(message[0:index],message[index+1:],userProfile.language,userProfile.email)))
 
             await turn_context.send_activity(MessageFactory.text("Ticket was created"))
-            await turn_context.send_activity(MessageFactory.attachment(await messages.function_ASK_QUESTION(userProfile.language)))
+            conversation_data.state="feedback"
             return
 
+
+    async def get_feedback(self,language,turn_context:TurnContext,conversation_data,userProfile):
+        if conversation_data.state=="feedback":
+            await turn_context.send_activity(
+            MessageFactory.attachment(await messages.function_FEEDBACK(language)))
+            conversation_data.state="feedback1"
+        elif conversation_data.state=="feedback1":
+            turn_context.activity.text
+            await turn_context.send_activity(
+                MessageFactory.attachment(await messages.function_FEEDBACK1(language)))
+            conversation_data.state = "feedback2"
+        elif conversation_data.state=="feedback2":
+            if language=="English":
+                await turn_context.send_activity(
+                    MessageFactory.text("Thank you for feedback!"))
+            elif language=="Русский":
+                await turn_context.send_activity(
+                    MessageFactory.text("Cпасибо за ваш отзыв!"))
+            else:
+                await turn_context.send_activity(
+                    MessageFactory.text("Thank you for feedback!/Cпасибо за ваш отзыв!"))
+
+            if turn_context.activity.text!="/skip":
+                    await self.send_feedback(userProfile.mark,turn_context.activity.text)
+            await turn_context.send_activity(
+                    MessageFactory.attachment(await messages.function_ASK_NEW_QUESTION(language)))
+            conversation_data.state = "question"
 
     async def card_before_question(self,turn_context,language:str="b",q:str=""):
         if language=="English":
@@ -232,6 +261,7 @@ class MyBot(ActivityHandler):
                 MessageFactory.text("<b>Напиши свой первый вопрос</b> Все настройки завершены,"
                                     " сейчас вы можете задать свой первый вопрос или вернуться к настрйкам /setting"
                                     "Напоминаю, что вы пропустили настройки языка. Чтобы настроить язык вернитесь к настройкам/setting"))
+
 
     async def language_setting(self, turn_context):
         attach = Activity(
@@ -261,7 +291,8 @@ class MyBot(ActivityHandler):
         )
         await turn_context.send_activity(attach)
 
-
+    async def send_feedback (self,mark:str,feedback:str=""):
+        return
 
     async def get_answer_from_knowledge_base(self,question:str)->str:
         await asyncio.sleep(3)
