@@ -42,6 +42,10 @@ class MyBot(ActivityHandler):
             await self.language_setting(turn_context)
             conversation_data.state="start"
             return
+        if message!="/start" and conversation_data.state=="None":
+            await turn_context.send_activity(MessageFactory.text("To start working with bot please write ```/start```"))
+            await turn_context.send_activity(MessageFactory.text("Чтобы начать диалог с ботом напишите ```/start```"))
+            return
         if message=="/help":
             await turn_context.send_activity(MessageFactory.attachment(await messages.function_HELP(userProfile.language)))
 #language setting stage
@@ -95,6 +99,12 @@ class MyBot(ActivityHandler):
                     #Dialog start, when user write "/start"
                     await self.language_setting(turn_context)
                     conversation_data.state="start"
+                elif turn_context.activity.text=="/help":
+                    await turn_context.send_activity(MessageFactory.attachment(await messages.function_HELP("b")))
+                else:
+                    await turn_context.send_activity(MessageFactory.text("To start working with bot please write ```/start```"))
+                    await turn_context.send_activity(MessageFactory.text("Чтобы начать диалог с ботом напишите ```/start```"))
+
 
 
 
@@ -156,15 +166,7 @@ class MyBot(ActivityHandler):
                 MessageFactory.text(await self.get_answer_from_knowledge_base(message)))
             userProfile.question = message
             #reply
-            if userProfile.language=="English":
-                reply = MessageFactory.attachment(messages.DID_THAT_HELP)
-                await turn_context.send_activity(reply)
-            if userProfile.language=="Русский":
-                reply = MessageFactory.attachment(messages.DID_THAT_HELP_rus)
-                await turn_context.send_activity(reply)
-            if userProfile.language=="b":
-                reply = MessageFactory.attachment(messages.DID_THAT_HELP_b)
-                await turn_context.send_activity(reply)
+            await turn_context.send_activity(MessageFactory.attachment(await messages.function_DID_THAT_HELP(userProfile.language)))
             return
 
         # if attempt is success, then ask feedback
@@ -183,15 +185,7 @@ class MyBot(ActivityHandler):
             await turn_context.send_activity(
             MessageFactory.text(await self.get_answer_from_knowledge_base(message)))
             conversation_data.state = "question2"
-            if userProfile.language == "English":
-                reply = MessageFactory.attachment(messages.DID_THAT_HELP)
-                await turn_context.send_activity(reply)
-            if userProfile.language == "Русский":
-                reply = MessageFactory.attachment(messages.DID_THAT_HELP_rus)
-                await turn_context.send_activity(reply)
-            if userProfile.language == "b":
-                reply = MessageFactory.attachment(messages.DID_THAT_HELP)
-                await turn_context.send_activity(reply)
+            await turn_context.send_activity(MessageFactory.attachment(await messages.function_DID_THAT_HELP(userProfile.language)))
             return
 
         # ask user create ticket
@@ -295,5 +289,5 @@ class MyBot(ActivityHandler):
         return
 
     async def get_answer_from_knowledge_base(self,question:str)->str:
-        await asyncio.sleep(3)
+        await asyncio.sleep(1)
         return ("Your answer is "+question)
