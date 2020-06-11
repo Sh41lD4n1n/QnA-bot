@@ -42,12 +42,14 @@ class MyBot(ActivityHandler):
             await self.language_setting(turn_context)
             conversation_data.state="start"
             return
-        if message!="/start" and conversation_data.state=="None":
-            await turn_context.send_activity(MessageFactory.text("To start working with bot please write ```/start```"))
-            await turn_context.send_activity(MessageFactory.text("Чтобы начать диалог с ботом напишите ```/start```"))
-            return
         if message=="/help":
             await turn_context.send_activity(MessageFactory.attachment(await messages.function_HELP(userProfile.language)))
+            return
+        if message!="/start" and conversation_data.state=="None":
+            await turn_context.send_activity(MessageFactory.text("To start conversation with bot please write ```/start```"))
+            await turn_context.send_activity(MessageFactory.text("Чтобы начать диалог с ботом напишите ```/start```"))
+            return
+
 #language setting stage
         #if user have wrote start, then bot reply
         if conversation_data.state!=None:
@@ -102,7 +104,7 @@ class MyBot(ActivityHandler):
                 elif turn_context.activity.text=="/help":
                     await turn_context.send_activity(MessageFactory.attachment(await messages.function_HELP("b")))
                 else:
-                    await turn_context.send_activity(MessageFactory.text("To start working with bot please write ```/start```"))
+                    await turn_context.send_activity(MessageFactory.text("To start conversation with bot please write ```/start```"))
                     await turn_context.send_activity(MessageFactory.text("Чтобы начать диалог с ботом напишите ```/start```"))
 
 
@@ -116,7 +118,6 @@ class MyBot(ActivityHandler):
                 await turn_context.send_activity(f"All right! Your email address is {userProfile.email}")
             if userProfile.language == "Русский":
                 await turn_context.send_activity(f"Хорошо. Твой адрес эл. почты {userProfile.email}")
-
             if userProfile.language =="b":
                 await turn_context.send_activity(f"All right! Your email address is {userProfile.email}")
                 await turn_context.send_activity(f"Хорошо. Твой адрес эл. почты {userProfile.email}")
@@ -124,15 +125,15 @@ class MyBot(ActivityHandler):
         else:
             if userProfile.language == "English":
                 await turn_context.send_activity("Please write innopolis email")
-                await turn_context.send_activity("Example: n.sername@innopolis.ru")
+                await turn_context.send_activity("Example: n.surname@innopolis.ru")
             if userProfile.language == "Русский":
                 await turn_context.send_activity("Пожалуйста напишите адрес иннополисовской эл. почты")
-                await turn_context.send_activity("Пример: n.sername@innopolis.ru")
+                await turn_context.send_activity("Пример: n.surname@innopolis.ru")
             if userProfile.language == "b":
                 await turn_context.send_activity("Please write innoplis email")
                 await turn_context.send_activity("Example: n.sername@innopolis.ru")
                 await turn_context.send_activity("Пожалуйста напишите адрес иннополисовксой эл. почты")
-                await turn_context.send_activity("Пример: n.sername@innopolis.ru")
+                await turn_context.send_activity("Пример: n.surname@innopolis.ru")
             return False
 
     async def new_user(self,turn_context,language):
@@ -143,12 +144,10 @@ class MyBot(ActivityHandler):
             await turn_context.send_activity(MessageFactory.text("It seems, I haven’t met you before. Send me your e-mail address please."))
         if language=="Русский":
             MessageFactory.text("Продолжим на русском")
-            await turn_context.send_activity(MessageFactory.text("Чтобы начать диалог вым нужно представиться."
-                                                       " Пожалйста напишите ваш адрес электронной почты в следующем сообщении"))
+            await turn_context.send_activity(MessageFactory.text("Мне кажется мы не общались раньше. Пожалуйста напишите ваш адрес электронной почты в следующем сообщении"))
         if language!="Русский" and language!="English":
             await turn_context.send_activity(MessageFactory.text("It seems, I haven’t met before. Send me your e-mail address please."))
-            await turn_context.send_activity(MessageFactory.text("Чтобы начать диалог вым нужно представиться."
-                                                                 " Пожалйста напишите ваш адрес электронной почты в следующем сообщении"))
+            await turn_context.send_activity(MessageFactory.text("Мне кажется мы не общались раньше. Пожалуйста напишите ваш адрес электронной почты в следующем сообщении"))
 
     async def solve_question(self,conversation_data,turn_context,userProfile):
         message = turn_context.activity.text
@@ -205,7 +204,17 @@ class MyBot(ActivityHandler):
                 index = message.find("\n")
                 await turn_context.send_activity(MessageFactory.attachment(await messages.function_BUILD_QUESTION(message[0:index],message[index+1:],userProfile.language,userProfile.email)))
 
-            await turn_context.send_activity(MessageFactory.text("Ticket was created"))
+            if userProfile.language=="English":
+                await turn_context.send_activity(
+                    MessageFactory.text("Ticket was created. Please wait an answer on your innopolis mail"))
+            elif userProfile.language=="Русский":
+                await turn_context.send_activity(
+                    MessageFactory.text("Запрос создан. Пожалуйста ожидайте ответа на иннополисовкской эл. почте"))
+            else:
+                await turn_context.send_activity(
+                    MessageFactory.text("Ticket was created. Please wait an answer on your innopolis mail"))
+                await turn_context.send_activity(
+                    MessageFactory.text("Запрос создан. Пожалуйста ожидайте ответа на иннополисовкской эл. почте"))
             conversation_data.state="feedback"
             return
 
@@ -223,13 +232,13 @@ class MyBot(ActivityHandler):
         elif conversation_data.state=="feedback2":
             if language=="English":
                 await turn_context.send_activity(
-                    MessageFactory.text("Thank you for feedback!"))
+                    MessageFactory.text("Thank you for your feedback!"))
             elif language=="Русский":
                 await turn_context.send_activity(
-                    MessageFactory.text("Cпасибо за ваш отзыв!"))
+                    MessageFactory.text("Спасибо за ваш отзыв!"))
             else:
                 await turn_context.send_activity(
-                    MessageFactory.text("Thank you for feedback!/Cпасибо за ваш отзыв!"))
+                    MessageFactory.text("Thank you for your feedback!/Cпасибо за ваш отзыв!"))
 
             if turn_context.activity.text!="/skip":
                     await self.send_feedback(userProfile.mark,turn_context.activity.text)
