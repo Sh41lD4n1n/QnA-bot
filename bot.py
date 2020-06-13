@@ -7,11 +7,13 @@ from botbuilder.schema import ChannelAccount, Activity
 from conversation_data import ConversationData
 import messages
 from user_profile import UserProfile
+from datetime import datetime
+import codecs
 
 
 class MyBot(ActivityHandler):
     # See https://aka.ms/about-bot-activity-message to learn more about the message and other activity types.
-    def __init__(self,conversation_state:ConversationState, user_state: UserState):
+    def __init__(self,conversation_state:ConversationState, user_state: UserState,queue:asyncio.Queue):
         if conversation_state is None:
             raise TypeError(
                 "[StateManagementBot]: Missing parameter. conversation_state is required but None was given"
@@ -24,6 +26,7 @@ class MyBot(ActivityHandler):
         self.user_state=user_state
         self.conversation_data_accessor = self.conversation_state.create_property("ConversationData")
         self.user_profile_accessor=self.user_state.create_property("UserProfile")
+        self.queue=queue
 
     async def on_turn(self, turn_context: TurnContext):
         await super().on_turn(turn_context)
@@ -35,6 +38,7 @@ class MyBot(ActivityHandler):
         userProfile = await self.user_profile_accessor.get(turn_context, UserProfile)
         conversation_data = await self.conversation_data_accessor.get(turn_context, ConversationData)
         message = turn_context.activity.text
+
 #first stage
         if message=="/start":
             #conversation between user and bot start with "/start" comamnd
@@ -49,7 +53,11 @@ class MyBot(ActivityHandler):
             await turn_context.send_activity(MessageFactory.text("To start conversation with bot please write ```/start```"))
             await turn_context.send_activity(MessageFactory.text("Чтобы начать диалог с ботом напишите ```/start```"))
             return
-
+        if message == "/tickets":
+            print(message)
+            await turn_context.send_activity(
+                MessageFactory.attachment(await messages.function_TICKETS(userProfile.language, userProfile)))
+            return
 #language setting stage
         #if user have wrote start, then bot reply
         if conversation_data.state!=None:
@@ -67,6 +75,7 @@ class MyBot(ActivityHandler):
             if conversation_data.state == "introduction":
                 #if email correct then function return true
                 if await self.set_email(turn_context,userProfile):
+                    userProfile.create_id()
                     conversation_data.state = "question"
                     await turn_context.send_activity(MessageFactory.attachment(
                         await messages.function_ASK_QUESTION(userProfile.language)))
@@ -99,6 +108,7 @@ class MyBot(ActivityHandler):
             if member_added.id != turn_context.activity.recipient.id:
                 if turn_context.activity.text=="/start":
                     #Dialog start, when user write "/start"
+                    userProfile = await self.user_profile_accessor.get(turn_context, UserProfile)
                     await self.language_setting(turn_context)
                     conversation_data.state="start"
                 elif turn_context.activity.text=="/help":
@@ -199,22 +209,31 @@ class MyBot(ActivityHandler):
             if message=="/skip":
                 await turn_context.send_activity(MessageFactory.attachment(
                     await messages.function_BUILD_QUESTION(userProfile.question, "", userProfile.language,
-                                                           userProfile.email)))
+                                           userProfile.email)))
+                date = datetime.now().timetuple()
+                userProfile.add_question(question=userProfile.question,date_of_creation=str(date[1])+"/"+str(date[2])+"/"+str(date[0]))
+                '''loop=asyncio.get_running_loop()
+                loop.create_task(self.get_answer_from_operator(userProfile.question,userProfile.email),name="request")'''
+
             else:
                 index = message.find("\n")
+                date = datetime.now().timetuple()
+                userProfile.add_question(question=message[0:index],
+                                         date_of_creation=str(date[1]) + "/" + str(date[2]) + "/" + str(date[0]),detail=message[index+1:])
                 await turn_context.send_activity(MessageFactory.attachment(await messages.function_BUILD_QUESTION(message[0:index],message[index+1:],userProfile.language,userProfile.email)))
-
+                '''loop=asyncio.get_running_loop()
+                loop.create_task(self.get_answer_from_operator(message[0:index],userProfile.email,message[index+1:]))'''
             if userProfile.language=="English":
                 await turn_context.send_activity(
-                    MessageFactory.text("Ticket was created. Please wait an answer on your innopolis mail"))
+                    MessageFactory.text("Ticket was created. I will inform you about answer."))
             elif userProfile.language=="Русский":
                 await turn_context.send_activity(
-                    MessageFactory.text("Запрос создан. Пожалуйста ожидайте ответа на иннополисовкской эл. почте"))
+                    MessageFactory.text("Запрос создан. Я уведомлю о получении ответа."))
             else:
                 await turn_context.send_activity(
-                    MessageFactory.text("Ticket was created. Please wait an answer on your innopolis mail"))
+                    MessageFactory.text("Ticket was created. I will inform you about answer."))
                 await turn_context.send_activity(
-                    MessageFactory.text("Запрос создан. Пожалуйста ожидайте ответа на иннополисовкской эл. почте"))
+                    MessageFactory.text("Запрос создан. Я уведомлю о получении ответа."))
             conversation_data.state="feedback"
             return
 
@@ -225,7 +244,7 @@ class MyBot(ActivityHandler):
             MessageFactory.attachment(await messages.function_FEEDBACK(language)))
             conversation_data.state="feedback1"
         elif conversation_data.state=="feedback1":
-            turn_context.activity.text
+            userProfile.mark=turn_context.activity.text
             await turn_context.send_activity(
                 MessageFactory.attachment(await messages.function_FEEDBACK1(language)))
             conversation_data.state = "feedback2"
@@ -241,7 +260,9 @@ class MyBot(ActivityHandler):
                     MessageFactory.text("Thank you for your feedback!/Cпасибо за ваш отзыв!"))
 
             if turn_context.activity.text!="/skip":
-                    await self.send_feedback(userProfile.mark,turn_context.activity.text)
+                    asyncio.get_running_loop().create_task(self.send_feedback(
+                        userProfile.mark,self.queue,turn_context.activity.text))
+
             await turn_context.send_activity(
                     MessageFactory.attachment(await messages.function_ASK_NEW_QUESTION(language)))
             conversation_data.state = "question"
@@ -294,9 +315,19 @@ class MyBot(ActivityHandler):
         )
         await turn_context.send_activity(attach)
 
-    async def send_feedback (self,mark:str,feedback:str=""):
-        return
-
+    async def send_feedback (self,mark:str,queue:asyncio.Queue,feedback:str=""):
+        time_for_sleep=await queue.get()
+        time_for_sleep=(time_for_sleep/0.125+4)*0.125
+        await queue.put(time_for_sleep%11)
+        await asyncio.sleep(time_for_sleep)
+        f=codecs.open("output","a","utf-8")
+        f.write(f"Mark: {mark} Feedback {feedback} \n")
+        f.close()
+        queue.task_done()
     async def get_answer_from_knowledge_base(self,question:str)->str:
-        await asyncio.sleep(1)
+        await asyncio.sleep(3)
         return ("Your answer is "+question)
+    async def get_answer_from_operator(self, title:str,email:str,text:str="")->str:
+        await asyncio.sleep(60)
+        question=title+"\n"+ text
+        return (f"Dear {email}. I am operator your answer is: {question}")

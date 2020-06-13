@@ -4,7 +4,7 @@
 import sys
 import traceback
 from datetime import datetime
-
+import asyncio
 from aiohttp import web
 from aiohttp.web import Request, Response, json_response
 from botbuilder.core import (
@@ -59,8 +59,16 @@ ADAPTER.on_turn_error = on_error
 MEMORY = MemoryStorage()
 USER_STATE = UserState(MEMORY)
 CONVERSATION_STATE = ConversationState(MEMORY)
+# Create Queue to menage access to File feedback
+QUEUE=asyncio.Queue(4)
+#initial values
+QUEUE.put_nowait(0.125)
+QUEUE.put_nowait(0.125*2)
+QUEUE.put_nowait(0.125*3)
+QUEUE.put_nowait(0.125*4)
+
 # Create the Bot
-BOT = MyBot(USER_STATE,CONVERSATION_STATE)
+BOT = MyBot(USER_STATE,CONVERSATION_STATE,QUEUE)
 
 
 # Listen for incoming requests on /api/messages
@@ -81,7 +89,6 @@ async def messages(req: Request) -> Response:
         return Response(status=201)
     except Exception as exception:
         raise exception
-
 
 APP = web.Application(middlewares=[aiohttp_error_middleware])
 APP.router.add_post("/api/messages", messages)
