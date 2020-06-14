@@ -1,22 +1,35 @@
 from datetime import datetime
+from tickets import PTicket
+
+
 class UserProfile:
-    def __init__(self,email:str=None,l:str="b",question:str=None,feedback:str=None,mark:str=None):
+    def __init__(self, email: str = None, l: str = "b", question: str = None, feedback: str = None, mark: str = None):
         self.user_id = None
         self.email = email
         self.language = l
-        self.question= question
-        self.mark=mark
-        self.opened_ticket=list()
-        self.number_of_question=0
-    def add_question(self,question:str,date_of_creation:str, detail:str=""):
-        self.number_of_question+=1
-        self.opened_ticket.append(Ticket(question,date_of_creation,self.user_id+"-"+str(self.number_of_question), detail))
-    def create_id(self):
-        self.user_id=self.email[0]+str(int(datetime.timestamp(datetime(2018,1,1)) % 1009))
+        self.question = question
+        self.mark = mark
+        self.opened_ticket = list()
+        self.number_of_question = 0
 
-class Ticket:
-    def __init__(self,question:str,date_of_creation:str,number:str, detail:str=""):
-        self.question=question
-        self.date_of_creation=date_of_creation
-        self.number=number
-        self.detail=detail
+    def add_question(self, details: str = "") -> str:
+        # get date of creation
+        date = datetime.now().timetuple()
+        # format of date is following month/day/year
+        date_of_creation = str(date[1]) + "/" + str(date[2]) + "/" + str(date[0])
+
+        # generate ticket id andcreate ticket
+        self.number_of_question += 1
+        ticket_id = self.user_id + "-" + str(self.number_of_question)
+        ticket = PTicket(title=self.question,
+                         time_opened=date_of_creation,
+                         ticket_id=ticket_id,
+                         email=self.email,
+                         details=details)
+        ticket.send()
+        self.opened_ticket.append(ticket)
+        print('opened: ', self.opened_ticket)
+        return ticket_id
+
+    def create_user_id(self):
+        self.user_id = self.email[0] + str(int(datetime.timestamp(datetime(2018, 1, 1)) % 1009))
