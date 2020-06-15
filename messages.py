@@ -99,7 +99,7 @@ def function_ASK_EMAIL(language: str):
     if language == "English":
         return "Ok It seems, I haven’t met you before. Send me your e-mail address please."
     if language == "Русский":
-        return "Продолжим на русском Мне кажется мы не общались раньше. Пожалуйста напишите ваш адрес электронной почты в следующем сообщении"
+        return "Мне кажется мы не общались раньше. Пожалуйста напишите ваш адрес электронной почты в следующем сообщении"
     if language != "Русский" and language != "English":
         return "It seems, I haven’t met before. Send me your e-mail address please. Мне кажется мы не общались раньше. Пожалуйста напишите ваш адрес электронной почты в следующем сообщении"
 
