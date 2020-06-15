@@ -266,8 +266,7 @@ class MyBot(ActivityHandler):
             details=turn_context.activity.text
             asyncio.get_running_loop().create_task(self.send_feedback(
                     userProfile.mark, self.queue,details))
-            # print message and move to quetion state
-            await turn_context.send_activity(MessageFactory.text("Thank you for your feedback"))#add langugaul
+            # print message and move to quetion state           
             await turn_context.send_activity(
                 MessageFactory.attachment(await messages.function_ASK_NEW_QUESTION(language)))
             conversation_data.state = "question"
