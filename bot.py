@@ -49,8 +49,8 @@ class MyBot(ActivityHandler):
         message = turn_context.activity.text
 
         # commands available in any stage of bot
-        if message == "/start":
-            # conversation between user and bot start with "/start" comamnd
+        if message == "Start":
+            # conversation between user and bot start with "Start" comamnd
             # bot ask to choose language first (function create a card with question)
             await turn_context.send_activity(messages.language_setting())
             conversation_data.state = "start"
@@ -68,7 +68,7 @@ class MyBot(ActivityHandler):
                 MessageFactory.attachment(await messages.function_TICKETS(userProfile.language, userProfile)))
             return
 
-        if message != "/start" and conversation_data.state == "None":
+        if message != "Start" and conversation_data.state == "None":
             # ask user type /start
             # print two messages on different languages
             eng, rus = messages.function_TYPE_START()
@@ -262,12 +262,12 @@ class MyBot(ActivityHandler):
         elif conversation_data.state == "feedback2":
             # write "Thank you for your feedback"
             await turn_context.send_activity(MessageFactory.text(messages.function_THANK_YOU(language)))
-            # save coments
-            if turn_context.activity.text != "/skip":
-                asyncio.get_running_loop().create_task(self.send_feedback(
-                    userProfile.mark, self.queue, turn_context.activity.text))
-
+            # save coments(it can be "/skip" or text)
+            details=turn_context.activity.text
+            asyncio.get_running_loop().create_task(self.send_feedback(
+                    userProfile.mark, self.queue,details))
             # print message and move to quetion state
+            await turn_context.send_activity(MessageFactory.text("Thank you for your feedback"))#add langugaul
             await turn_context.send_activity(
                 MessageFactory.attachment(await messages.function_ASK_NEW_QUESTION(language)))
             conversation_data.state = "question"
@@ -276,30 +276,39 @@ class MyBot(ActivityHandler):
         # Function send_feedback write feedback to file feedback.txt
         time_sleep = await queue.get()
         await asyncio.sleep(time_sleep)
-        time_sleep = time_sleep + 4 * 0.125
+        time_sleep = time_sleep + 4 * 0.25
         await queue.put(time_sleep % 5)
-        f = codecs.open("feedback.txt", "ra", "utf-8")
-        line=f.readline()
-        f.write(f"Mark: {mark} Feedback {feedback} \n")
+        f = codecs.open("feedback.txt", "r", "utf-8")
+        line = f.readlines()[0]
         f.close()
 
-        '''        i=0
-        while line[i]!=" ":
-            i=i+1
-        sum=""
-        while line[i]!=",":
-            sum=sum+line[i]
-        sum=int(sum)+mark
+        i = 0
+        while line[i] != " ":
+            i = i + 1
+        i = i + 1
+        sum = ""
+        while line[i] != ",":
+            sum = sum + line[i]
+            i = i + 1
+        sum = int(sum) + int(mark)
+        number_of_questions = ""
 
-        number_of_questions=""
-        while line[i]!=" ":
-            i=i+1
+        while line[i] != " ":
+            i = i + 1
         while line[i] != ",":
             number_of_questions = number_of_questions + line[i]
-        number_of_questions=int(number_of_questions)+1
-        f = codecs.open("feedback.txt", "w", "utf-8")
-        f.write(f"Avarage_mark={sum/number_of_questions},Sum {sum}, Number of questions {number_of_questions},")
-        f.close()'''
+            i = i + 1
+        number_of_questions = int(number_of_questions) + 1
+        output=f"Avarage_mark={round(sum/number_of_questions,2)},Sum {sum},Number_of_questions {number_of_questions},\n"
+        if len(output)<len(line):
+            output=output+", ,"*(len(line)-len(output))
+        f = codecs.open("feedback.txt", "r+", "utf-8")
+        f.write(output)
+        f.close()
+
+        f = codecs.open("feedback.txt", "a", "utf-8")
+        f.write(f"Mark: {mark} Feedback {feedback} \n")
+        f.close()
 
         queue.task_done()
 

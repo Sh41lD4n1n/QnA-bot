@@ -88,8 +88,8 @@ def create_thumbnail_card(title: str, subtitle: str,
 
 # dialogs before start
 def function_TYPE_START():
-    eng = "Чтобы начать диалог с ботом напишите ```/start```"
-    rus = "To start conversation with bot please write ```/start```"
+    eng = "Чтобы начать диалог с ботом напишите ```Start```"
+    rus = "To start conversation with bot please write ```Start```"
     return eng, rus
 
 
