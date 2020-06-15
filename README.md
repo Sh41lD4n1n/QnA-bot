@@ -14,7 +14,7 @@
  
 #Conversation with bot 
 
-  	To start conversation enter "/start" command or "/help" to open help message
+  	To start conversation enter "Start" command or "/help" to open help message
   	Now you should choose language(if skip this step, bot will write message in two languages)
   	Write email adress in next message (Bot require email adress ends with "innopolis.ru" or "innopolis.university")
   	Now you can write question, type "/setting"(to change language) or type /tickets(to see all opened tickets)
