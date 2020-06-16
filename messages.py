@@ -15,7 +15,7 @@ class Button:
 
 
 LIST_OF_COMMAND = [
-    "/start", "/help", "/setting", "/ticket", "/opened", "/closed", "/skip", "/cancel"
+    "Start", "/help", "/setting", "/ticket", "/opened", "/closed", "/skip", "/cancel"
 ]
 
 
@@ -427,7 +427,7 @@ async def function_HELP(language: str = "b", state: str = None) -> Attachment:
                 "type": "ColumnSet",
                 "columns": [
                     {"type": "Column", "width": width,
-                     "items": [{"type": "TextBlock", "text": "/start"}],
+                     "items": [{"type": "TextBlock", "text": "Start"}],
                      },
                     {"type": "Column", "width": "stretch",
                      "items": [{"type": "TextBlock", "text": description_for_command[0],

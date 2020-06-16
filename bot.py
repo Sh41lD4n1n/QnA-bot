@@ -124,7 +124,7 @@ class MyBot(ActivityHandler):
         conversation_data = await self.conversation_data_accessor.get(turn_context, ConversationData)
         for member_added in members_added:
             if member_added.id != turn_context.activity.recipient.id:
-                if turn_context.activity.text == "/start":
+                if turn_context.activity.text == "Start":
                     # Dialog start, when user write "/start"
                     userProfile = await self.user_profile_accessor.get(turn_context, UserProfile)
                     await turn_context.send_activity(messages.language_setting())
@@ -133,9 +133,9 @@ class MyBot(ActivityHandler):
                     await turn_context.send_activity(MessageFactory.attachment(await messages.function_HELP("b")))
                 else:
                     await turn_context.send_activity(
-                        MessageFactory.text("To start conversation with bot please write ```/start```"))
+                        MessageFactory.text("To start conversation with bot please write ```Start```"))
                     await turn_context.send_activity(
-                        MessageFactory.text("Чтобы начать диалог с ботом напишите ```/start```"))
+                        MessageFactory.text("Чтобы начать диалог с ботом напишите ```Start```"))
 
     async def set_email(self, turn_context, userProfile,conversation_data):
         message = turn_context.activity.text
@@ -266,7 +266,8 @@ class MyBot(ActivityHandler):
             details=turn_context.activity.text
             asyncio.get_running_loop().create_task(self.send_feedback(
                     userProfile.mark, self.queue,details))
-            # print message and move to quetion state           
+            # print message and move to quetion state
+            await turn_context.send_activity(MessageFactory.text("Thank you for your feedback"))#add langugaul
             await turn_context.send_activity(
                 MessageFactory.attachment(await messages.function_ASK_NEW_QUESTION(language)))
             conversation_data.state = "question"
