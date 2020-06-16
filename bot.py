@@ -149,7 +149,7 @@ class MyBot(ActivityHandler):
             # write instruction for question state
             await turn_context.send_activity(MessageFactory.attachment(await messages.function_ASK_QUESTION(userProfile.language)))
         else:
-            eng,rus = messages.function_EMAIL_INCOR(userProfile.language, userProfile.email)
+            eng,rus = messages.function_EMAIL_INCOR(userProfile.language)
             await turn_context.send_activity(MessageFactory.text(eng))
             await turn_context.send_activity(MessageFactory.text(rus))
 
