@@ -100,7 +100,8 @@ class MyBot(ActivityHandler):
             # in any moment user can change settings
             #there program catch changes
             if conversation_data.state == "setting":
-                userProfile.language = message
+                if message=="English" or message=="Русский":
+                    userProfile.language = message
                 #move to question state
                 await turn_context.send_activity(MessageFactory.attachment(
                     await messages.function_ASK_NEW_QUESTION(userProfile.language)))
@@ -149,9 +150,9 @@ class MyBot(ActivityHandler):
             # write instruction for question state
             await turn_context.send_activity(MessageFactory.attachment(await messages.function_ASK_QUESTION(userProfile.language)))
         else:
-            eng,rus = messages.function_EMAIL_INCOR(userProfile.language)
-            await turn_context.send_activity(MessageFactory.text(eng))
-            await turn_context.send_activity(MessageFactory.text(rus))
+            reply = messages.function_EMAIL_INCOR(userProfile.language)
+            for text in reply:
+                await turn_context.send_activity(MessageFactory.text(text))
 
     async def manage_question_state(self, conversation_data, turn_context, userProfile):
         '''

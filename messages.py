@@ -18,7 +18,6 @@ LIST_OF_COMMAND = [
     "Start", "/help", "/setting", "/ticket", "/opened", "/closed", "/skip", "/cancel"
 ]
 
-
 def get_text_from_file(page: int, dialog: int) -> []:
     f = open('textOfMessages', 'r')
     lines = f.readlines()
@@ -97,28 +96,28 @@ def function_TYPE_START():
 
 def function_ASK_EMAIL(language: str):
     if language == "English":
-        return "Ok It seems, I haven’t met you before. Send me your e-mail address please."
+        return "It seems, I haven’t met you before. Send me your e-mail address please."
     if language == "Русский":
         return "Мне кажется мы не общались раньше. Пожалуйста напишите ваш адрес электронной почты в следующем сообщении"
     if language != "Русский" and language != "English":
-        return "It seems, I haven’t met before. Send me your e-mail address please. Мне кажется мы не общались раньше. Пожалуйста напишите ваш адрес электронной почты в следующем сообщении"
+        return "It seems, I haven’t met before. Send me your e-mail address please. / Мне кажется мы не общались раньше. Пожалуйста напишите ваш адрес электронной почты в следующем сообщении"
 
 def function_EMAIL_INCOR(language:str):
     if language == "English":
-        return "Please write innopolis email \n Example: n.surname@innopolis.ru",""
+        return ["Please write your innopolis email.For example: n.surname@innopolis.ru"]
     elif language == "Русский":
-        return "","Пожалуйста напишите адрес иннополисовской эл. почты \n Пример: n.surname@innopolis.ru"
+        return ["Пожалуйста напишите свой адрес иннополисовской эл. почты. Пример: n.surname@innopolis.ru"]
     else:
-        return "Please write innoplis email \n Example: n.sername@innopolis.ru", "Пожалуйста напишите адрес иннополисовксой эл. почты \n Пример: n.surname@innopolis.ru"
+        return ["Please write your innoplis email. For example: n.sername@innopolis.ru", "Пожалуйста напишите свой адрес иннополисовксой эл. почты. Пример: n.surname@innopolis.ru"]
 
 
 def function_EMAIL_COR(language:str,email:str):
     if language == "English":
         return f"All right! Your email address is {email}"
     elif language == "Русский":
-        return f"Хорошо. Твой адрес эл. почты {email}"
+        return f"Хорошо.Ваш адрес эл. почты {email}"
     else:
-        return f"All right! Your email address is /Хорошо. Твой адрес эл. почты  {userProfile.email}"
+        return f"All right! Your email address is /Хорошо.Ваш адрес эл. почты  {email}"
 
 async def function_SETTING(language: str, email: str) -> Attachment:
     button = [Button("English", "English"), Button("Русский", "Русский")]
@@ -127,7 +126,7 @@ async def function_SETTING(language: str, email: str) -> Attachment:
         subtitle = "Your current parameters:"
         text = "<ul><li><strong>Language:</strong>        English</li><li><strong>Email</strong>       " + email + "</li></ul>"
     elif language == "Русский":
-        title = "Настройки"
+        title = "Настройки:"
         subtitle = "Ваши текущие настройки:"
         text = "<ul><li><strong>Язык:</strong>        Русский</li><li>Эл. адрес       " + email + "</li></ul>"
     else:
@@ -142,18 +141,19 @@ async def function_SETTING(language: str, email: str) -> Attachment:
 async def function_ASK_QUESTION(language: str) -> Attachment:
     if language == "English":
         title = "Ask your question!"
-        subtitle = " All right. All settings are finished. Now, you can ask your question or return to setting."
+        subtitle = "All right. All settings are finished. Now, you can ask your question or return to setting."
         text = "Write a question or push button."
         button = [Button("Return to setting", "/setting")]
     elif language == "Русский":
-        title = "Задайте свой вопрос!",
-        subtitle = " Все настройки завершены, сейчас вы можете задать свой вопрос или вернуться к настрйкам."
+        title = "Задайте ваш вопрос!",
+        subtitle = "Все настройки завершены, сейчас вы можете задать свой вопрос или вернуться к настрйкам."
         text = "Напишите вопрос или нажмите на кнопку."
         button = [Button("Вернуться к настройкам", "/setting")]
     else:
         title = "Ask your question!/Задайте свой вопрос!"
-        subtitle = " All right. All settings are finished. Now, you can ask your question or return to setting./ Все настройки завершены, сейчас вы можете задать свой вопрос или вернуться к настрйкам."
-        text = "You should return to setting to set language. /Советуем вам вернуться к настройкам и установить язык."
+        subtitle=""
+        text = "<strong>All right. All settings are finished. Now, you can ask your question or return to setting./ Все настройки завершены, сейчас вы можете задать свой вопрос или вернуться к настрйкам.</strong>"\
+               "You should return to setting to set language. /Советуем вам вернуться к настройкам и установить язык."
         button = [Button("Return to setting/Вернуться к настройкам", "/setting")]
     return create_thumbnail_card(title, subtitle, text,
                                  url="https://healthinsuremarketplace.com/wp-content/uploads/2014/02/Fotolia_53938997_XS.jpg",
@@ -164,19 +164,19 @@ async def function_DID_THAT_HELP(language: str) -> Attachment:
     if language == "English":
         title = "Did that help?"
         subtitle = ""
-        text = "Click yes, if your question are solved." \
-               "If you want to continue and write question for operator, click no. Click cancel to close question."
+        text = "Click yes, if your question are solved.<p>" \
+               "If you want to continue and write question for operator, click no.<p> Click cancel to close question."
         button = [Button("Yes", "Yes"), Button("No", "No"), Button("Cancel", "/cancel")]
     elif language == "Русский":
         title = "Вам помог наш ответ?"
         subtitle = ""
-        text = "Отправьте да, если вопрос решён. Если вы хотите задать вопрос оператору, напишите нет. Если вы хотите закрыть вопрос, нажмите отмена."
+        text = "Отправьте да, если вопрос решён.<p> Если вы хотите задать вопрос оператору, напишите нет.<p> Если вы хотите закрыть вопрос, нажмите отмена."
         button = [Button("Да", "Yes"), Button("Нет", "No"), Button("Отмена", "/cancel")]
     else:
         title = "Did that help?/Вам помог наш ответ?"
         subtitle = ""
-        text = "If you want to continue and write question for operator, click no. Click cancel to close question." \
-               "/Отправьте да, если вопрос решён. Если вы хотите задать вопрос оператору, напишите нет. Если вы хотите закрыть вопрос, нажмите отмена."
+        text = "Click yes, if your question are solved. If you want to continue and write question for operator, click no. Click cancel to close question." \
+               "/<p> Отправьте да, если вопрос решён. Если вы хотите задать вопрос оператору, напишите нет. Если вы хотите закрыть вопрос, нажмите отмена."
         button = [Button("Yes/Да", "Yes"), Button("No/Нет", "No"), Button("Cancel/Отмена", "/cancel")]
     return create_thumbnail_card(title, subtitle, text,
                                  "https://www.mtzion.lib.il.us/kids-teens/question-mark.jpg/@@images/image.jpeg",
@@ -186,18 +186,18 @@ async def function_DID_THAT_HELP(language: str) -> Attachment:
 async def function_ASK_NEW_QUESTION(language: str) -> Attachment:
     if language == "English":
         title = "Do you have any other question?"
-        subtitle = "You can ask your next question or change setting."
+        subtitle = "You can ask your question or move to setting menu."
         text = "Write a question or push button."
         button = [Button("Setting", "/setting")]
     elif language == "Русский":
-        title = "Есть еще вопросы?"
-        subtitle = "Вы можете задать свой вопрос или изменить настрйки."
+        title = "У вас есть еще вопросы?"
+        subtitle = "Вы можете задать свой вопрос или перейти к меню настроек."
         text = "Напишите вопрос или нажмите кнопку."
         button = [Button("Настройки", "/setting")]
     else:
-        title = "Do you have any other question? / Есть еще вопросы?"
-        subtitle = "You can ask your next question or change setting. / Вы можете задать свой вопрос или изменить настрйки."
-        text = "You should return to setting to set language. /Советуем вам вернуться к настройкам и установить язык."
+        title = "Do you have any other question? / У вас есть еще вопросы?"
+        subtitle = ""
+        text = "<strong>You can ask your question or move to setting menu.<p> / Вы можете задать свой вопрос или перейти к меню настроек.</strong> <p> You should return to setting to set language. /Советуем вам вернуться к настройкам и установить язык."
         button = [Button("Setting/Настройки", "/setting")]
     return create_thumbnail_card(title, subtitle, text,
                                  url="https://healthinsuremarketplace.com/wp-content/uploads/2014/02/Fotolia_53938997_XS.jpg",
@@ -207,37 +207,35 @@ async def function_ASK_NEW_QUESTION(language: str) -> Attachment:
 async def function_TYPE_QUESTION(language: str) -> Attachment:
     if language == "English":
         title = "Let's prepare question to send to operator:"
-        subtitle = "Please write your question in first line and then add detales, or write /skip to ask question that was writen before, or close question"
-        text = "Push button or write question"
-        button = [Button("Skip", "/skip"), Button("Close question", "/cancel")]
+        subtitle = ""
+        text = "Please add detales to your question, or write /skip to skip this step. Also you can close question and don't send it to Operator."
+        button = [Button("Skip this step", "/skip"), Button("Don't ask question", "/cancel")]
     elif language == "Русский":
-        title = "Давайте подготовим вопрос для оператора"
-        subtitle = "Напишите ваш вопрос ниже и добавьте коментарии в следующей строке."
-        " Если вы хотите отправить тот вопрос который был задан боту нажмите пропустить. Если вы хотите отменить вопрос, нажмите отменить вопрос"
-        text = "Нажмите кнопку или введите вопрос."
-        button = [Button("Пропустить", "/skip"), Button("Отменить вопрос", "/cancel")]
+        title = "Давайте подготовим вопрос для оператора:"
+        subtitle = ""
+        text = "Добавьте дополнительную информацию по вопросу (или пропустите этот шаг, нажав 'Пропустить'). Так же вы можете не задавать вопрос оператору, нажав 'Не отправлять вопрос'."
+        button = [Button("Пропустить шаг", "/skip"), Button("Не отправлять вопрос", "/cancel")]
     else:
         title = "Let's prepare question to send to operator:/ Давайте продготовим вопрос для оператора"
-        subtitle = "Please write your question in first line and then add detales, or write" \
-                   "/skip to ask question that was writen before, or close question/ ""Напишите ваш вопрос ниже и добавьте коментарии в следующей строке." \
-                   " Если вы хотите отправить тот вопрос который был задан боту нажмите пропустить. Если вы хотите отменить вопрос, нажмите отменить вопрос"
-        text = "Push bottun or write question / Нажмите кнопку или введите вопрос."
-        button = [Button("Skip/Пропустить", "/skip"), Button("Close question/Отменить вопрос", "/cancel")]
+        subtitle = ""
+        text = "Please add detales to your question, or write /skip to skip this step. Also you can close question and don't send it to Operator. /<p>" \
+               "Добавьте дополнительную информацию по вопросу (или пропустите этот шаг, нажав 'Пропустить'). Так же вы можете не задавать вопрос оператору, нажав 'Не отправлять вопрос'."
+        button = [Button("Skip this step/Пропустить шаг", "/skip"), Button("Don't ask question/Не отправлять вопрос", "/cancel")]
     return create_thumbnail_card(title, subtitle, text, "https://static.thenounproject.com/png/993506-200.png", button)
 
 
 async def function_BUILD_QUESTION(question: str, detales: str, language: str, email: str, ticket_id: str) -> Attachment:
     date = datetime.now().timetuple()
     if language == "English":
-        title = "Question for operator"
+        title = "Question for operator:"
         last_sentence = "Best regards, \n mail  " + email
         ticket_id = f"Ticket id {ticket_id}"
     elif language == "Русский":
-        title = "Вопрос для отправки оператору"
+        title = "Вопрос для отправки оператору:"
         last_sentence = "С наилучшими пожеланиями, \n mail  " + email
         ticket_id = f"Номер запроса {ticket_id}"
     else:
-        title = "Question for operator/Вопрос для отправки оператору"
+        title = "Question for operator/Вопрос для отправки оператору:"
         last_sentence = "Best regards/С наилучшими пожеланиями, \n mail  " + email
         ticket_id = f"Ticket id/Номер запроса {ticket_id}"
     return CardFactory.adaptive_card({
@@ -280,9 +278,9 @@ def function_TICKET_WAS_CREATED(language: str) -> str:
     if language == "English":
         return "Ticket was created. I will inform you about answer."
     elif language == "Русский":
-        return "Запрос создан. Я уведомлю о получении ответа."
+        return "Запрос создан. Я уведомлю вас о получении ответа."
     else:
-        return "Ticket was created. I will inform you about answer. / Запрос создан. Я уведомлю о получении ответа."
+        return "Ticket was created. I will inform you about answer. / Запрос создан. Я уведомлю вас о получении ответа."
 
 
 # dialogs for manage_feedback_state funcion
@@ -293,17 +291,17 @@ async def function_FEEDBACK(language: str) -> Attachment:
         title = "Feedback"
         subtitle = "Thank you for using QnAbot"
         text = "We believe that you have found answer for your question." \
-               " To help us improve, we'd like to know your opinion."
+               "Please give a grade to this answer."
     elif language == "Русский":
-        title = "Обратная связь"
+        title = "Обратная связь:"
         subtitle = "Спасибо вам за то, что пользуетесь нашим ботом."
         text = " Мы надеемся, что вы смогли получить ответ на ваш вопрос. Пожалуйста помогите нам стать лучше и оцените работу бота."
     else:
         title = "Feedback/Обратная связь"
-        subtitle = "Thank you for using QnAbot, we believe that you have found your answer." \
-                   " To help us improve, we'd like to know your opinion./  Спасибо вам за то, что пользуетесь нашим ботом." \
+        subtitle = ""
+        text = "Thank you for using QnAbot, we believe that you have found your answer." \
+                   "Please give a grade to this answer./  Спасибо вам за то, что пользуетесь нашим ботом." \
                    " Мы надеемся, что вы смогли получить ответ на ваш вопрос. Пожалуйста помогите нам стать лучше и оцените работу бота."
-        text = "Please give a mark to bot. / Поставьте оценку работе бота"
     return create_thumbnail_card(title, subtitle, text
                                  ,
                                  url="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcRnwpGT0WK4U9VTQLnGRJ8GSR2i7LhUVOYmgdpRkfQ3Q-N8os9X&usqp=CAU",
@@ -313,19 +311,19 @@ async def function_FEEDBACK(language: str) -> Attachment:
 async def function_FEEDBACK1(language: str) -> Attachment:
     if language == "English":
         title = "Feedback"
-        subtitle = "Thank you for your mark. It is important for us to know your opinion."
-        text = "If you want to skip this step, push skip button. Could you please state your opinion in next message."
+        subtitle = "Thank you for your grade. It is important for us to know your opinion."
+        text = "Could you please state your opinion in next message. If you want to skip this step, push skip button."
         button = [Button("Skip", "/skip")]
     elif language == "Русский":
         title = "Обратная связь"
-        subtitle = "Спасибо вам за вашу оценку."
-        text = " Для нас очень важно знать ваше мнение и интересно читать ваши коментарии. Пожалуйста оставьте отзыв в следующем сообщении. Если вы хотите пропустить этот шаг, нажмите кнопку пропустить."
+        subtitle = "Спасибо вам за вашу оценку.Для нас очень важно знать ваше мнение."
+        text = "Пожалуйста оставьте отзыв в следующем сообщении. Если вы хотите пропустить этот шаг, нажмите кнопку пропустить."
         button = [Button("Пропустить", "/skip")]
     else:
         title = "Feedback /Обратная связь"
         subtitle = ""
-        text = "Thank you for your mark. It is important for us." \
-               "Could you please write your opinion in next message. /" \
+        text = "Thank you for your grade. It is important for us." \
+               "Could you please write your opinion in next message. If you want to skip this step, push skip button. /<p>" \
                "Спасибо вам за вашу оценку. Для нас очень важно знать ваше мнение и интересно читать ваши коментарии. Пожалуйста оставьте отзыв в следующем сообщении."
         button = [Button("Skip/Пропустить", "/skip")]
     return create_thumbnail_card(title, subtitle, text
@@ -340,7 +338,7 @@ def function_THANK_YOU(language: str) -> str:
     elif language == "Русский":
         return "Спасибо за ваш отзыв!"
     else:
-        "Thank you for your feedback!/Cпасибо за ваш отзыв!"
+        return "Thank you for your feedback!/Cпасибо за ваш отзыв!"
 
 
 # dialog for help message
@@ -348,12 +346,17 @@ async def function_HELP(language: str = "b", state: str = None) -> Attachment:
     width = "110px"
     if language == "English":
         get_text_from_file(0, 2)
-        print(list)
-        text = list[0]
-        about_bot = list[1]
-        author = list[2]
-        contacts = list[3]
-        description_for_command = list[4:9]
+        text = "Help message"
+        about_bot = "Hello and welcome to our bot. This bot is able to give answer for your question. Furthermore, some problems can be solved automatically by bot. Unfortunately some problems require human's(Operator's) intervention."
+        author = "Bot was created by team of bachelor students"
+        contacts = "You can ask your questions about interaction with bot to --/--"
+        description_for_command = [
+            "Start conversation with user",
+            "Show list of all setting. You can change langauge here. This command available after initialisation and when you finish to write question",
+            "Write this comand to see all ticktes opend and closed",
+            "To skip some states in creating question and feedback",
+            "Type this command to close question"
+        ]
     elif language == "Русский":
         text = "Помощь"
         about_bot = "Привет и добро пожаловать в наше приложение. Это бот умеет отвечать на вопросы. Бот может ответить на некоторые вопросы быстро и самостоятелно, а сложные вопросы бот отправит оператору."
@@ -413,6 +416,12 @@ async def function_HELP(language: str = "b", state: str = None) -> Attachment:
             {
                 "type": "TextBlock",
                 "text": author,
+                "wrap": True,
+                "separator": True
+            },
+            {
+                "type": "TextBlock",
+                "text": contacts,
                 "wrap": True,
                 "separator": True
             },
