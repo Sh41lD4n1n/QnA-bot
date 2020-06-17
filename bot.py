@@ -290,7 +290,10 @@ class MyBot(ActivityHandler):
         while line[i] != ",":
             sum = sum + line[i]
             i = i + 1
-        sum = int(sum) + int(mark)
+        try:
+            sum = int(sum) + int(mark)
+        except: ValueError
+            sum = int(sum)
         number_of_questions = ""
 
         while line[i] != " ":
