@@ -32,4 +32,6 @@ class UserProfile:
         return ticket_id
 
     def create_user_id(self):
-        self.user_id = self.email[0] + str(int(datetime.timestamp(datetime(2018, 1, 1)) % 1009))
+        date = datetime.now()
+        self.user_id = self.email[0] +  str( int(datetime.timestamp(datetime.strptime("2018-1-1T22:33:0+0200","%Y-%m-%dT%H:%M:%S%z"))-date.timestamp())%1009  )
+        print(self.user_id)
