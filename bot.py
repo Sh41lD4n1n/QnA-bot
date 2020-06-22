@@ -292,7 +292,7 @@ class MyBot(ActivityHandler):
             i = i + 1
         try:
             sum = int(sum) + int(mark)
-        except: ValueError
+        except ValueError:
             sum = int(sum)
         number_of_questions = ""
 
