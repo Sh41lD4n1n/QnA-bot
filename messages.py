@@ -527,13 +527,13 @@ async def function_TICKETS(language, userProfile) -> Attachment:
                 {"type": "Column", "width": "stretch",
                  "items": [{"type": "Container",
                             "items": [
-                                {"type": "TextBlock", "text": question.question, "wrap": True, "weight": "Bolder"},
-                                {"type": "TextBlock", "text": question.detail, "wrap": True}]
+                                {"type": "TextBlock", "text": question.title, "wrap": True, "weight": "Bolder"},
+                                {"type": "TextBlock", "text": question.details, "wrap": True}]
                             }]
                  },
                 {"type": "Column", "width": "80px",
-                 "items": [{"type": "TextBlock", "text": question.number},
-                           {"type": "TextBlock", "text": question.date_of_creation}
+                 "items": [{"type": "TextBlock", "text": question.ticket_id},
+                           {"type": "TextBlock", "text": question.time_opened}
                            ]}
             ], "separator": True
         })
