@@ -3,7 +3,7 @@
 import asyncio
 from botbuilder.core import ActivityHandler, TurnContext, ConversationState, UserState, MessageFactory
 from botbuilder.schema import ChannelAccount, Activity
-
+from botbuilder.core.teams import TeamsInfo
 from conversation_data import ConversationData
 import messages
 from user_profile import UserProfile
@@ -144,7 +144,8 @@ class MyBot(ActivityHandler):
             #get email
             userProfile.email = message
             await turn_context.send_activity(MessageFactory.text(messages.function_EMAIL_COR(userProfile.language,userProfile.email)))
-            userProfile.create_user_id()
+            member = await TeamsInfo.get_member(turn_context, turn_context.activity.from_property.id)
+            userProfile.create_user_id(member.user_principal_name)
             # move to question stage
             conversation_data.state = "question"
             # write instruction for question state
