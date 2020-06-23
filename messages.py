@@ -138,17 +138,21 @@ async def function_SETTING(language: str, email: str) -> Attachment:
 
 
 # dialogs for manage_question_state funcion
-async def function_ASK_QUESTION(language: str) -> Attachment:
+async def function_MENU(language: str) -> Attachment:
     if language == "English":
-        title = "Ask your question!"
-        subtitle = "All right. All settings are finished. Now, you can ask your question or return to setting."
-        text = "Write a question or push button."
-        button = [Button("Return to setting", "/setting")]
+        title = "Menu"
+        subtitle = "All right. What are you going to do next?"
+        text = "Now you can ask your question, return to settings, check created tickets." \
+               " If answer for one of your tickets appear, you can open it here."
+        button = [Button("Return to setting", "/setting"),Button("Ask question", "/create_ticket"),
+                  Button("List of all Tickets", "/tickets"),Button("Help", "/help")]
     elif language == "Русский":
-        title = "Задайте ваш вопрос!",
-        subtitle = "Все настройки завершены, сейчас вы можете задать свой вопрос или вернуться к настрйкам."
-        text = "Напишите вопрос или нажмите на кнопку."
-        button = [Button("Вернуться к настройкам", "/setting")]
+        title = "Меню",
+        subtitle = "Отлично! Что теперь?"
+        text = "Сейчас вы можете задать ваш вопрос, вернуться к настройкам, открыть созданные запросы." \
+               "Вы можете открыть ответ от оператора здесь."
+        button = [Button("Вернуться к настройкам", "/setting"), Button("Задать вопрос", "/create_ticket"),
+                  Button("Открыть запросы", "/tickets"), Button("Помощь", "/help")]
     else:
         title = "Ask your question!/Задайте свой вопрос!"
         subtitle=""
@@ -181,27 +185,6 @@ async def function_DID_THAT_HELP(language: str) -> Attachment:
     return create_thumbnail_card(title, subtitle, text,
                                  "https://www.mtzion.lib.il.us/kids-teens/question-mark.jpg/@@images/image.jpeg",
                                  button)
-
-
-async def function_ASK_NEW_QUESTION(language: str) -> Attachment:
-    if language == "English":
-        title = "Do you have any other question?"
-        subtitle = "You can ask your question or move to setting menu."
-        text = "Write a question or push button."
-        button = [Button("Setting", "/setting")]
-    elif language == "Русский":
-        title = "У вас есть еще вопросы?"
-        subtitle = "Вы можете задать свой вопрос или перейти к меню настроек."
-        text = "Напишите вопрос или нажмите кнопку."
-        button = [Button("Настройки", "/setting")]
-    else:
-        title = "Do you have any other question? / У вас есть еще вопросы?"
-        subtitle = ""
-        text = "<strong>You can ask your question or move to setting menu.<p> / Вы можете задать свой вопрос или перейти к меню настроек.</strong> <p> You should return to setting to set language. /Советуем вам вернуться к настройкам и установить язык."
-        button = [Button("Setting/Настройки", "/setting")]
-    return create_thumbnail_card(title, subtitle, text,
-                                 url="https://healthinsuremarketplace.com/wp-content/uploads/2014/02/Fotolia_53938997_XS.jpg",
-                                 elements_of_button=button)
 
 
 async def function_TYPE_QUESTION(language: str) -> Attachment:

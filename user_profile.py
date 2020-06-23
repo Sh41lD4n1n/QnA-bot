@@ -11,6 +11,7 @@ class UserProfile:
         self.mark = mark
         self.opened_ticket = list()
         self.number_of_question = 0
+        self.answer=""
 
     def add_question(self, details: str = "") -> str:
         # get date of creation

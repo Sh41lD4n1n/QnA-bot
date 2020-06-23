@@ -2,8 +2,9 @@
 # Licensed under the MIT License.
 import asyncio
 from botbuilder.core import ActivityHandler, TurnContext, ConversationState, UserState, MessageFactory
-from botbuilder.schema import ChannelAccount, Activity
 from botbuilder.core.teams import TeamsInfo
+from botbuilder.schema import ChannelAccount, Activity
+
 from conversation_data import ConversationData
 import messages
 from user_profile import UserProfile
@@ -49,6 +50,8 @@ class MyBot(ActivityHandler):
         message = turn_context.activity.text
 
         # commands available in any stage of bot
+
+
         if message == "Start":
             # conversation between user and bot start with "Start" comamnd
             # bot ask to choose language first (function create a card with question)
@@ -60,12 +63,6 @@ class MyBot(ActivityHandler):
             # print help message
             await turn_context.send_activity(
                 MessageFactory.attachment(await messages.function_HELP(userProfile.language)))
-            return
-
-        if message == "/tickets":
-            # print all tickets
-            await turn_context.send_activity(
-                MessageFactory.attachment(await messages.function_TICKETS(userProfile.language, userProfile)))
             return
 
         if message != "Start" and conversation_data.state == "None":
@@ -96,6 +93,7 @@ class MyBot(ActivityHandler):
                 # if email correct then function return true and set email
                 return await self.set_email(turn_context, userProfile,conversation_data)
 
+
             # setting stage
             # in any moment user can change settings
             #there program catch changes
@@ -103,10 +101,12 @@ class MyBot(ActivityHandler):
                 if message=="English" or message=="Русский":
                     userProfile.language = message
                 #move to question state
-                await turn_context.send_activity(MessageFactory.attachment(
-                    await messages.function_ASK_NEW_QUESTION(userProfile.language)))
-                conversation_data.state = "question"
+                conversation_data.state = "menu0"
+                await self.manage_menu_state(turn_context, userProfile, conversation_data)
                 return
+
+            if conversation_data.state=="menu":
+                await self.manage_menu_state(turn_context,userProfile,conversation_data)
             # question stage
             # if user write his/her email, he can ask question
             if conversation_data.state.rfind("question") == 0:
@@ -145,15 +145,41 @@ class MyBot(ActivityHandler):
             userProfile.email = message
             await turn_context.send_activity(MessageFactory.text(messages.function_EMAIL_COR(userProfile.language,userProfile.email)))
             member = await TeamsInfo.get_member(turn_context, turn_context.activity.from_property.id)
+            await turn_context.send_activity(member.user_principal_name)
             userProfile.create_user_id(member.user_principal_name)
             # move to question stage
-            conversation_data.state = "question"
+            conversation_data.state = "menu0"
             # write instruction for question state
-            await turn_context.send_activity(MessageFactory.attachment(await messages.function_ASK_QUESTION(userProfile.language)))
+            await self.manage_menu_state(turn_context=turn_context,userProfile=userProfile,conversation_data=conversation_data)
         else:
             reply = messages.function_EMAIL_INCOR(userProfile.language)
             for text in reply:
                 await turn_context.send_activity(MessageFactory.text(text))
+
+    async def manage_menu_state(self,turn_context:TurnContext,userProfile,conversation_data):
+        message=turn_context.activity.text
+        #this message will be printed when user will move to menu state
+        if conversation_data.state=="menu0":
+            await turn_context.send_activity(MessageFactory.attachment(await messages.function_MENU(userProfile.language)))
+            conversation_data.state="menu"
+            return
+        if message == "/tickets":
+            #TODO:Manange ticket state
+            # print all tickets
+            await turn_context.send_activity(
+                MessageFactory.attachment(await messages.function_TICKETS(userProfile.language, userProfile)))
+            return
+        elif message=="/create_ticket":
+            conversation_data.state="question"
+            await self.manage_question_state(conversation_data,turn_context,userProfile)
+        elif message=="/setting":
+            # process setting
+            await turn_context.send_activity(
+                MessageFactory.attachment(await messages.function_SETTING(userProfile.language, userProfile.email)))
+            conversation_data.state = "setting"
+            return
+
+
 
     async def manage_question_state(self, conversation_data, turn_context, userProfile):
         '''
@@ -173,12 +199,7 @@ class MyBot(ActivityHandler):
         message = turn_context.activity.text
         # first state
         if conversation_data.state == "question":
-            # process setting
-            if message == "/setting":
-                await turn_context.send_activity(
-                    MessageFactory.attachment(await messages.function_SETTING(userProfile.language, userProfile.email)))
-                conversation_data.state = "setting"
-                return
+            await turn_context.send_activity("Я внимательно слушаю")
             # get question, suggest answer from db and save question in userProfile
             # save question
             userProfile.question = message
@@ -197,9 +218,8 @@ class MyBot(ActivityHandler):
             conversation_data.state = "feedback"
             return
         if message == "/cancel":
-            conversation_data.state = "question"
-            await turn_context.send_activity(
-                MessageFactory.attachment(await messages.function_ASK_NEW_QUESTION(userProfile.language)))
+            conversation_data.state = "menu0"
+            await self.manage_menu_state(turn_context,userProfile,conversation_data)
             return
 
         # second state
@@ -229,6 +249,8 @@ class MyBot(ActivityHandler):
             # notify user, that ticket wascreated
             await turn_context.send_activity(
                 MessageFactory.text(messages.function_TICKET_WAS_CREATED(userProfile.language)))
+            #wait task in paralel
+            asyncio.get_running_loop().create_task(self.get_answer_from_operator(ticket_id))
             # move to feedack state
             conversation_data.state = "feedback"
             return
@@ -271,7 +293,8 @@ class MyBot(ActivityHandler):
             # print message and move to quetion state
             await turn_context.send_activity(
                 MessageFactory.attachment(await messages.function_ASK_NEW_QUESTION(language)))
-            conversation_data.state = "question"
+            conversation_data.state = "menu0"
+            await self.manage_menu_state(turn_context,userProfile,conversation_data)
 
     async def send_feedback(self, mark: str, queue: asyncio.Queue, feedback: str = ""):
         # Function send_feedback write feedback to file feedback.txt
@@ -321,8 +344,8 @@ class MyBot(ActivityHandler):
         await asyncio.sleep(3)
         return ("Your answer is " + question)
 
-    async def get_answer_from_operator(self, title: str, email: str, text: str = "") -> str:
+    async def get_answer_from_operator(self, ticket_id:str) -> str:
         # TODO: Add answer here
-        await asyncio.sleep(60)
-        question = title + "\n" + text
-        return (f"Dear {email}. I am operator your answer is: {question}")
+        await asyncio.sleep(3)
+        return "get_answer_from_operator-"+f"Dear user. I am operator your ticket id is: {ticket_id}"
+
