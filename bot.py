@@ -145,8 +145,8 @@ class MyBot(ActivityHandler):
             userProfile.email = message
             await turn_context.send_activity(MessageFactory.text(messages.function_EMAIL_COR(userProfile.language,userProfile.email)))
             member = await TeamsInfo.get_member(turn_context, turn_context.activity.from_property.id)
-            await turn_context.send_activity(member.user_principal_name)
-            userProfile.create_user_id(member.user_principal_name)
+            await turn_context.send_activity(member.id)
+            userProfile.create_user_id(member.id)
             # move to question stage
             conversation_data.state = "menu0"
             # write instruction for question state
